@@ -25,7 +25,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
         env_file_encoding="utf-8",
-        extra="ignore",  # ignora variables que no usamos todavia
+        extra="ignore",
+        hide_input_in_errors=True,
     )
 
     # Entorno de ejecucion. Por defecto, desarrollo.
