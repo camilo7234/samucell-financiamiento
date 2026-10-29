@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+sqlalchemy[asyncio]>=2.0
+asyncpg
+pydantic-settings
+PyJWT[crypto]
