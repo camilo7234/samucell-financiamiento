@@ -69,3 +69,29 @@ def test_validation_error_hides_database_credentials(
     assert fake_password not in error_text
     assert invalid_url not in error_text
     assert "input_value=" not in error_text
+
+
+# ============================================================
+# BLOQUE 6 - CONFIGURACION JWT
+# Verifica las direcciones y restricciones de autenticacion.
+# Usa valores ficticios y no realiza peticiones de red.
+# ============================================================
+def test_jwt_configuration_uses_project_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv(
+        "DATABASE_URL",
+        "postgresql+asyncpg://usuario:clave-falsa@localhost:5432/pruebas",
+    )
+    monkeypatch.setenv("SUPABASE_URL", "https://ejemplo.supabase.co/")
+    monkeypatch.setenv("JWT_ALGORITHM", "ES256")
+    monkeypatch.setenv("JWT_AUDIENCE", "authenticated")
+
+    settings = Settings(_env_file=None)
+
+    assert settings.jwt_algorithm == "ES256"
+    assert settings.jwt_audience == "authenticated"
+    assert settings.jwt_issuer == "https://ejemplo.supabase.co/auth/v1"
+    assert settings.jwt_jwks_url == (
+        "https://ejemplo.supabase.co/auth/v1/.well-known/jwks.json"
+    )

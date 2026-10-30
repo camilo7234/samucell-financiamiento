@@ -40,6 +40,32 @@ class Settings(BaseSettings):
     supabase_url: AnyHttpUrl
 
     # ========================================================
+    # BLOQUE 3.1 - PARAMETROS DE VALIDACION JWT
+    # Solo admitimos ES256 para las nuevas sesiones del proyecto.
+    # La audiencia identifica los tokens de usuarios autenticados.
+    # ========================================================
+    jwt_algorithm: Literal["ES256"] = "ES256"
+    jwt_audience: Literal["authenticated"] = "authenticated"
+
+    # ========================================================
+    # BLOQUE 3.2 - EMISOR ESPERADO
+    # Se deriva de SUPABASE_URL para no duplicar configuracion.
+    # rstrip evita generar dos barras antes de "auth/v1".
+    # ========================================================
+    @property
+    def jwt_issuer(self) -> str:
+        return f"{str(self.supabase_url).rstrip('/')}/auth/v1"
+
+    # ========================================================
+    # BLOQUE 3.3 - DIRECCION DE LAS CLAVES PUBLICAS
+    # El verificador consultara esta URL de confianza.
+    # Nunca se tomara una URL de claves desde el token recibido.
+    # ========================================================
+    @property
+    def jwt_jwks_url(self) -> str:
+        return f"{self.jwt_issuer}/.well-known/jwks.json"
+
+    # ========================================================
     # BLOQUE 4 - VALIDACION DEL DRIVER
     # SQLAlchemy async exige el prefijo postgresql+asyncpg://
     # ========================================================
