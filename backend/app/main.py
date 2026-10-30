@@ -1,9 +1,10 @@
 # ============================================================
 # BLOQUE 1 - IMPORTACIONES
-# Annotated permite declarar dependencias sin llamadas en los
-# valores por defecto de los argumentos.
+# Herramientas para el ciclo de vida, dependencias y consultas.
 # ============================================================
 import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException
@@ -11,20 +12,39 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import get_session
+from app.core.config import get_settings
+from app.db.session import get_engine, get_session, get_sessionmaker
 
 # ============================================================
-# BLOQUE 2 - LOGGER Y APLICACION
-# No se registran cadenas de conexion ni mensajes originales
-# de excepciones que puedan contener informacion sensible.
+# BLOQUE 2 - CICLO DE VIDA Y CREACION DE LA APLICACION
+# Al arrancar: valida la configuracion y prepara el motor.
+# Crear el motor no abre por si solo una conexion a PostgreSQL.
+# Al apagar: libera conexiones y limpia las fabricas cacheadas.
 # ============================================================
 logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    get_settings()
+    engine = get_engine()
+
+    try:
+        yield
+    finally:
+        try:
+            await engine.dispose()
+        finally:
+            get_sessionmaker.cache_clear()
+            get_engine.cache_clear()
+            get_settings.cache_clear()
+
 
 app = FastAPI(
     title="Samucell Financiamiento API",
     version="0.1.0",
+    lifespan=lifespan,
 )
-
 
 # ============================================================
 # BLOQUE 3 - SALUD DEL SERVIDOR
