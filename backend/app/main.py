@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.db.session import get_engine, get_session, get_sessionmaker
+from app.modules.auth.router import router as auth_router
 
 # ============================================================
 # BLOQUE 2 - CICLO DE VIDA Y CREACION DE LA APLICACION
@@ -45,6 +46,13 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+# ============================================================
+# BLOQUE 2.1 - ROUTERS DE MODULOS
+# Los endpoints de negocio se versionan bajo /api/v1.
+# ============================================================
+app.include_router(auth_router)
+
 
 # ============================================================
 # BLOQUE 3 - SALUD DEL SERVIDOR
