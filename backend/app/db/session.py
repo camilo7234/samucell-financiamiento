@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from sqlalchemy.pool import NullPool
 
 from app.core.config import get_settings
 
@@ -17,19 +18,23 @@ from app.core.config import get_settings
 # ============================================================
 # BLOQUE 2 - MOTOR DE CONEXION
 # Se crea una sola vez, la primera vez que se necesita (no al
-# importar). pool_pre_ping detecta conexiones caidas antes de
-# usarlas. El pool es pequeno para respetar el limite de
-# conexiones del Session Pooler de Supabase.
+# importar). Se usa NullPool porque el pooling lo maneja el
+# Transaction Pooler de Supabase. Se desactivan los prepared
+# statements porque el pooler en modo transaccion no los
+# soporta y provocan DBAPIError.
 # ============================================================
 @lru_cache
 def get_engine() -> AsyncEngine:
     settings = get_settings()
     return create_async_engine(
         settings.database_url.get_secret_value(),
-        pool_pre_ping=True,
-        pool_size=3,
-        max_overflow=2,
+        poolclass=NullPool,
+        connect_args={
+            "statement_cache_size": 0,
+            "prepared_statement_cache_size": 0,
+        },
     )
+
 
 
 # ============================================================
@@ -40,6 +45,7 @@ def get_engine() -> AsyncEngine:
 @lru_cache
 def get_sessionmaker() -> async_sessionmaker[AsyncSession]:
     return async_sessionmaker(get_engine(), expire_on_commit=False)
+
 
 
 # ============================================================
