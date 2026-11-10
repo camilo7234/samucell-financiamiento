@@ -2,6 +2,7 @@
 # BLOQUE 1 - IMPORTACIONES
 # ============================================================
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Annotated
 from uuid import UUID
@@ -80,3 +81,27 @@ async def get_current_profile(
         full_name=profile.full_name,
         role=role,
     )
+
+
+
+# ============================================================
+# BLOQUE 5 - REQUISITO DE ROL
+# Fabrica de dependencias: require_role(Role.ADMIN) devuelve una
+# dependencia que reutiliza get_current_profile y exige que el
+# rol del perfil este entre los permitidos. El 403 es el mismo
+# generico de siempre; el motivo solo va al log.
+# ============================================================
+def require_role(*allowed: Role) -> Callable[..., CurrentProfile]:
+    if not allowed:
+        raise ValueError("require_role necesita al menos un rol")
+
+    allowed_roles = frozenset(allowed)
+
+    def dependency(
+        profile: Annotated[CurrentProfile, Depends(get_current_profile)],
+    ) -> CurrentProfile:
+        if profile.role not in allowed_roles:
+            raise _forbidden("insufficient_role")
+        return profile
+
+    return dependency
