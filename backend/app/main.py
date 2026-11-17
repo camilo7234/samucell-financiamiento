@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import get_settings
 from app.db.session import get_engine, get_session, get_sessionmaker
 from app.modules.auth.router import router as auth_router
+from app.modules.customers.router import router as customers_router
 
 # ============================================================
 # BLOQUE 2 - CICLO DE VIDA Y CREACION DE LA APLICACION
@@ -25,10 +26,12 @@ from app.modules.auth.router import router as auth_router
 logger = logging.getLogger(__name__)
 
 
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     get_settings()
     engine = get_engine()
+
 
     try:
         yield
@@ -41,17 +44,21 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
             get_settings.cache_clear()
 
 
+
 app = FastAPI(
     title="Samucell Financiamiento API",
     version="0.1.0",
     lifespan=lifespan,
 )
 
+
 # ============================================================
 # BLOQUE 2.1 - ROUTERS DE MODULOS
 # Los endpoints de negocio se versionan bajo /api/v1.
 # ============================================================
 app.include_router(auth_router)
+app.include_router(customers_router)
+
 
 
 # ============================================================
@@ -61,6 +68,7 @@ app.include_router(auth_router)
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
+
 
 
 # ============================================================
@@ -81,5 +89,6 @@ async def health_db(
             status_code=503,
             detail="Base de datos no disponible",
         ) from None
+
 
     return {"status": "ok", "database": "connected"}
