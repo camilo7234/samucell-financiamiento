@@ -1,6 +1,7 @@
 # ============================================================
 # BLOQUE 1 - IMPORTACIONES
 # ============================================================
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -55,8 +56,8 @@ class CustomerResponse(BaseModel):
     address: str | None
     status: str
     notes: str | None
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
 
 
 # ============================================================
@@ -132,6 +133,8 @@ async def create_customer(
     if row is None:
         raise CustomerNotFoundError()
 
+    await session.commit()
+
     return CustomerResponse.model_validate(row)
 
 # ============================================================
@@ -198,5 +201,7 @@ async def update_customer(
     row = result.mappings().first()
     if row is None:
         raise CustomerNotFoundError()
+
+    await session.commit()
 
     return CustomerResponse.model_validate(row)
