@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import get_settings
 from app.db.session import get_engine, get_session, get_sessionmaker
 from app.modules.auth.router import router as auth_router
+from app.modules.credits.router import router as credits_router
 from app.modules.customers.router import router as customers_router
 
 # ============================================================
@@ -58,6 +59,7 @@ app = FastAPI(
 # ============================================================
 app.include_router(auth_router)
 app.include_router(customers_router)
+app.include_router(credits_router)
 
 
 
