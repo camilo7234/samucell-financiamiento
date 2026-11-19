@@ -112,7 +112,7 @@ _INSERT_CREDIT_PLAN_QUERY = text(
     "(store_id, sale_id, initial_percentage, initial_amount, financed_amount, "
     "nominal_rate, effective_annual_rate, interest_amount, "
     "total_obligation_amount, installment_count, installment_amount, "
-    "frequency, purchased_date, first_due_date, rounding_rule, "
+    "frequency, purchase_date, first_due_date, rounding_rule, "
     "due_date_policy, liquidation_method, status, calculation_version) "
     "VALUES ("
     ":store_id, :sale_id, :initial_percentage, :initial_amount, "
@@ -152,7 +152,6 @@ _SELECT_CREDIT_RESPONSE_QUERY = text(
     "cp.installment_amount, "
     "cp.first_due_date, "
     "cp.status, "
-    "sa.notes, "
     "cp.created_at, "
     "cp.updated_at "
     "FROM public.credit_plans cp "
@@ -317,7 +316,7 @@ async def create_credit(
         {
             "store_id": data.store_id,
             "inventory_item_id": data.inventory_item_id,
-            "sale_id": sale_id,
+            "sale_id": str(sale_id),
             "performed_by": current_user_id,
             "notes": data.notes,
         },
@@ -346,6 +345,7 @@ async def create_credit(
         raise SQLAlchemyError("No se pudo crear el plan de credito")
 
     credit_plan_id = credit_plan["id"]
+
 
     # 5.10) Crear todas las cuotas
     due_dates = _calculate_due_dates(

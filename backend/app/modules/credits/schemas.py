@@ -66,7 +66,6 @@ class CreditResponse(BaseModel):
     installment_amount: Decimal
     first_due_date: date
     status: str
-    notes: str | None
     created_at: datetime
     updated_at: datetime
     installments: list[InstallmentResponse]

@@ -1,6 +1,7 @@
 # ============================================================
 # BLOQUE 1 - IMPORTACIONES
 # ============================================================
+import logging
 from typing import Annotated
 from uuid import UUID
 
@@ -21,6 +22,9 @@ from app.modules.credits.service import (
     InventoryItemNotFoundError,
     StoreNotFoundError,
 )
+
+logger = logging.getLogger(__name__)
+
 
 # ============================================================
 # BLOQUE 2 - ROUTER VERSIONADO
@@ -78,11 +82,20 @@ async def create_credit(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Configuracion financiera invalida o tope de usura excedido",
         ) from None
-    except SQLAlchemyError:
+    except SQLAlchemyError as exc:
+        logger.error(
+            "Fallo al crear credito: %s",
+            type(exc).__name__,
+        )
+        logger.debug(
+            "Detalle tecnico del fallo al crear credito: %s",
+            exc,
+        )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Servicio no disponible",
         ) from None
+
 
 # ============================================================
 # BLOQUE 5 - CONSULTAR CREDITO POR ID
